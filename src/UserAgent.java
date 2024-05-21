@@ -45,57 +45,103 @@ public class UserAgent {
     }
 
     private void parseLogLineToLogEntryClass(String userAgentFullData) {
+
+
+        //YandexBot
         String[] lineParts = userAgentFullData.split(" ");
-        if (lineParts.length >= 2 && lineParts.length <= 5) {
-            setBotName(extractBotNameFromUserAgent(userAgentFullData));
+        for (int i = 1; i < lineParts.length; i++) {
+            if (lineParts[1].startsWith("(compatible;")) {
+                String[] botParts = lineParts[2].split("/");
+                botName = botParts[0].trim();
+                setBotName(botName);
+            }
 
-        } else if (lineParts.length >= 11) {
-            setBrowser(lineParts[1].substring(1, lineParts[1].length() - 1));
-            setBotName(extractBotNameFromUserAgent(userAgentFullData));
-            setOperationSystem(extractOperationSystemFromUserAgent(userAgentFullData));
+            if (lineParts.length >= 5) {
 
-        }
+                if (!lineParts[1].startsWith("(compatible;")) {
+                    //  operationSystem = lineParts[1].trim();
+                    //   setOperationSystem(operationSystem);
 
-    }
+                    if (lineParts[1].equals("(Windows") || lineParts[1].equals("(Linux") || lineParts[1].equals("(Android")) {
+                        String os = lineParts[1].substring(1);
+                        operationSystem = os.trim();
+                        setOperationSystem(operationSystem);
 
-    public static String extractBotNameFromUserAgent(String fragment) {
-        String botName;
-        String[] parts = fragment.split(" ");
-        for (int i = 0; i < parts.length; i++) {
+                    } else if (lineParts[1].equals("(iPad;U;CPU")) {
+                        String os = lineParts[1].substring(1, lineParts[1].length() - 6);
 
-            if (parts[i].startsWith("(compatible;")) {
-                if (parts[i + 1] != null) {
-                    String[] botTypeAndVersion = parts[i + 1].split("/");
-                    botName = botTypeAndVersion[0].trim();
-                    return botName;
+                        operationSystem = os.trim();
+                        setOperationSystem(operationSystem);
+
+                    } else if (lineParts[1].equals("(Linux;u;Android")) {
+                        String os = lineParts[1].substring(1, lineParts[1].length() - 10);
+
+                        operationSystem = os.trim();
+                        setOperationSystem(operationSystem);
+
+                    } else {
+                        String os = lineParts[1].substring(1, lineParts[1].length() - 1);
+
+                        operationSystem = os.trim();
+                        setOperationSystem(operationSystem);
+
+                    }
+                }
+
+            }
+            for (int j = 0; j < lineParts.length - 1; j++) {
+                if (lineParts[j].startsWith("Gecko)")) {
+                    String nextPart = lineParts[j + 1];
+                    if (nextPart.startsWith("Safari") || nextPart.startsWith("SamsungBrowser")
+                            || nextPart.startsWith("HeadlessChrome")
+                            || nextPart.startsWith("Chrome")
+                    ) {
+                        String[] browserAndVersion = nextPart.split("/");
+                        browser = browserAndVersion[0].trim();
+                        setBrowser(browser);
+                        break;
+                    } else if (nextPart.startsWith("JavaFX") && lineParts.length <= 9
+                            || (nextPart.startsWith("Version") && (lineParts.length >= 14 && lineParts.length <= 15)
+                            && lineParts[j].equals(lineParts[lineParts.length - 2])
+                            || (nextPart.startsWith("Ubuntu") && lineParts.length <= 10)
+                    )
+
+                    ) {
+                        String partWithBrowser = lineParts[j + 2];
+                        String[] browserAndVersion = partWithBrowser.split("/");
+                        browser = browserAndVersion[0].trim();
+                        setBrowser(browser);
+                        break;
+                    } else if (
+                            nextPart.startsWith("Ubuntu")
+                                    || nextPart.startsWith("JavaFX/8.0")
+                                    || nextPart.startsWith("JavaFX") || nextPart.trim().startsWith(" ")
+                                    || nextPart.startsWith("OPiOS") || nextPart.startsWith("GSA")
+                                    || (nextPart.startsWith("FxiOS") && lineParts.length <= 17)
+                                    || (nextPart.startsWith("Version") && lineParts.length == 16
+                                    && lineParts[j].equals(lineParts[lineParts.length - 3])
+                                    || nextPart.startsWith("CriOS"))
+
+                    ) {
+                        String partWithBrowser = lineParts[j + 3];
+                        String[] browserAndVersion = partWithBrowser.split("/");
+                        browser = browserAndVersion[0].trim();
+                        setBrowser(browser);
+                        break;
+                    } else if ((nextPart.startsWith("FxiOS") && lineParts.length > 17)) {
+                        String partWithBrowser = lineParts[j + 4];
+                        String[] browserAndVersion = partWithBrowser.split("/");
+                        browser = browserAndVersion[0].trim();
+                        setBrowser(browser);
+                        break;
+                    }
                 }
             }
+
         }
-        return "-";
+
     }
 
-    public static String extractOperationSystemFromUserAgent(String fragment) {
-        String operationSystem;
-        String[] parts = fragment.split(" ");
-        for (int i = 0; i < parts.length; i++) {
-
-            if (parts[i].startsWith("Gecko)")) {
-                if (i + 1 <= parts.length - 1 && parts[i + 1] != null) {///////
-                    String[] botTypeAndVersion = parts[i + 1].split("/");
-                    operationSystem = botTypeAndVersion[0].trim();
-                    return operationSystem;
-                }
-            }
-        }
-        return "-";
-    }
-
-    public static String extractBrowserNameFromUserAgent(String fragment) {
-        String browser;
-        String[] parts = fragment.split("\"");
-        browser = parts[0];
-        return browser;
-    }
 
     @Override
     public String toString() {
@@ -105,5 +151,6 @@ public class UserAgent {
                 ", operationSystem='" + operationSystem + '\'' +
                 '}';
     }
+
 
 }
